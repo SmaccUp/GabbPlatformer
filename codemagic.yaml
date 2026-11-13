@@ -19,22 +19,27 @@ workflows:
           unzip -q /tmp/gradle.zip -d /tmp
 
       
+      
       - name: Build APK
         script: |
-          echo "Searching for Android project..."
-          find "$CM_BUILD_DIR" -name settings.gradle -type f
           SETTINGS_FILE=$(find "$CM_BUILD_DIR" -name settings.gradle -type f -print -quit)
-
-          if [ -z "$SETTINGS_FILE" ]; then
-            echo "ERROR: settings.gradle not found!"
-            exit 1
-          fi
-
           PROJECT_DIR=$(dirname "$SETTINGS_FILE")
-          echo "Building from: $PROJECT_DIR"
+
           cd "$PROJECT_DIR"
 
           /tmp/gradle-8.9/bin/gradle --no-daemon assembleDebug
 
+          APK=$(find "$PROJECT_DIR" -type f -name "*.apk" -print -quit)
+
+          if [ -z "$APK" ]; then
+            echo "ERROR: No APK was generated"
+            exit 1
+          fi
+
+          cp "$APK" "$CM_BUILD_DIR/app-debug.apk"
+
+
+    
     artifacts:
-      - app/build/outputs/apk/debug/app-debug.apk
+      - app-debug.apk
+
